@@ -1,8 +1,10 @@
 package cp.campus.todolist.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record PedidoRequest(
         @NotBlank
@@ -14,6 +16,11 @@ public record PedidoRequest(
         @Digits(integer = 17, fraction = 2)
         BigDecimal subtotal,
 
-        boolean clienteVip
+        boolean clienteVip,
+
+
+        @NotEmpty
+        @Size(max = 100)
+        List<@NotNull @Valid DetallePedidoRequest> detalles
 ) {
 }

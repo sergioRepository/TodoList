@@ -7,6 +7,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 @Entity
@@ -18,7 +22,7 @@ import java.math.BigDecimal;
 public class Pedido {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy =  GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 150)
@@ -33,11 +37,39 @@ public class Pedido {
     @Column(nullable = false, precision = 19,scale =2)
     private BigDecimal total;
 
-    public Pedido(String cliente, BigDecimal subtotal, BigDecimal descuento, BigDecimal total) {
+
+    @OneToMany(mappedBy = "pedido",cascade = CascadeType.ALL,orphanRemoval = true)
+    private List<DetallePedido> detalles = new ArrayList<>();
+
+    public Pedido(String cliente) {
         this.cliente = cliente;
-        this.subtotal = subtotal;
-        this.descuento = descuento;
-        this.total = total;
+        this.subtotal = new BigDecimal("0.00");
+        this.descuento =  new BigDecimal("0.00");
+        this.total = new BigDecimal("0.00");
+    }
+
+    public List<DetallePedido> getDetalles(){
+        return Collections.unmodifiableList(detalles);
+    }
+
+    public void agregarDetalle(Producto producto,int cantidad){
+        DetallePedido detalle = new DetallePedido(this,producto,cantidad);
+        detalles.add(detalle);
+    }
+
+    public void calcularTotales(BigDecimal tasaDescuento){
+        if(detalles.isEmpty()){
+            throw new IllegalStateException("El pedido debe tener al menos un detalle");
+        }
+
+        if(tasaDescuento == null || tasaDescuento.signum()<0 || tasaDescuento.compareTo(BigDecimal.ONE)>0){
+
+            throw  new IllegalArgumentException("La tasa debe estar entre 0 y 1");
+        }
+
+        subtotal= detalles.stream().map(DetallePedido::calcularImporte).reduce(new BigDecimal("0.00"),BigDecimal::add).setScale(2, RoundingMode.UNNECESSARY);
+     descuento = subtotal.multiply(tasaDescuento).setScale(2,RoundingMode.HALF_UP);
+    total= subtotal.subtract(descuento);
     }
 }
 
