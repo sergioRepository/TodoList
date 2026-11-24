@@ -9,7 +9,6 @@ public record DetallePedidoResponse(
         String productoNombre,
         Integer cantidad,
         BigDecimal precioUnitario,
-        BigDecimal importe,
-        List<DetallePedidoResponse> detalles
+        BigDecimal importe
 ) {
 }

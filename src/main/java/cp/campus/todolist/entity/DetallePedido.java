@@ -38,13 +38,14 @@ public class DetallePedido {
         if (cantidad == null || cantidad <= 0) {
             throw new IllegalArgumentException("La cantidad debe ser mayor a cero");
         }
-        if (precioUnitario == null || precioUnitario.compareTo(BigDecimal.ZERO) < 0) {
+        if (producto.getPrecio() == null || producto.getPrecio().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("El precio unitario no puede ser negativo");
         }
 
         this.pedido = pedido;
         this.producto = producto;
         this.cantidad = cantidad;
+        this.precioUnitario = producto.getPrecio();
     }
 
     public BigDecimal calcularImporte(){

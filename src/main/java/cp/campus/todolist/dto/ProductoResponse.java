@@ -1,5 +1,7 @@
 package cp.campus.todolist.dto;
 
+import cp.campus.todolist.entity.Categorias;
+
 import java.math.BigDecimal;
 
 public record ProductoResponse(
@@ -9,4 +11,5 @@ public record ProductoResponse(
        Long categoriaId,
        String nombreCategoria
 ) {
+
 }

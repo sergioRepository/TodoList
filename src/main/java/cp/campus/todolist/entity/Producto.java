@@ -1,6 +1,10 @@
 package cp.campus.todolist.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,4 +37,7 @@ public class Producto {
     }
 
 
+    public Producto(String strip, @NotNull @DecimalMin("0.01") @Digits(integer = 17, fraction = 2) BigDecimal precio, @NotNull @Positive Long aLong) {
+        
+    }
 }
