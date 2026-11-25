@@ -16,57 +16,56 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Validated
 @Transactional(readOnly = true)
 public class PedidoService {
-
     private static final BigDecimal TASA_DESCUENTO_VIP = new BigDecimal("0.10");
 
     private final PedidoRepository pedidoRepository;
     private final ProductoRepository productoRepository;
 
-    public PedidoService(PedidoRepository pedidoRepository,
-                         ProductoRepository productoRepository) {
+    public PedidoService(PedidoRepository pedidoRepository, ProductoRepository productoRepository) {
         this.pedidoRepository = pedidoRepository;
         this.productoRepository = productoRepository;
     }
 
     @Transactional
-    public PedidoResponse crear(@NotNull @Valid PedidoRequest request) {
-        Pedido pedido = new Pedido(request.Cliente()); // SUPUESTO: constructor Pedido(String cliente)
+    public PedidoResponse crear(@NotNull @Valid PedidoRequest request){
+        Pedido pedido = new Pedido(request.cliente().strip());
 
-        for (DetallePedidoRequest detalle : request.detalles()) {
+        Set<Long> productosIncluidos = new HashSet<>();
+
+        for (DetallePedidoRequest detalle : request.detalles()){
+            if(!productosIncluidos.add(detalle.productoId())){
+                throw new IllegalArgumentException("El producto está repetido: "
+                        + detalle.productoId());
+            }
+
             Producto producto = productoRepository.findById(detalle.productoId())
-                    .orElseThrow(() -> new IllegalArgumentException(
-                            "No existe el producto con el ID " + detalle.productoId()));
+                    .orElseThrow(()-> new IllegalArgumentException("No existe el producto con el ID"
+                            +detalle.productoId()));
 
-            // SUPUESTO: Pedido tiene agregarDetalle(DetallePedido)
-            pedido.agregarDetalle(new DetallePedido(pedido, producto, detalle.cantidad()));
+            pedido.agregarDetalle(
+                    producto,
+                    detalle.cantidad()
+            );
         }
 
-        BigDecimal subtotal = pedido.getDetalles().stream()
-                .map(DetallePedido::calcularImporte)
-                .reduce(BigDecimal.ZERO, BigDecimal::add)
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal tasa = request.clienteVip() ? TASA_DESCUENTO_VIP : BigDecimal.ZERO;
 
-        // SUPUESTO: PedidoRequest tiene un boolean vip()
-        BigDecimal descuento = request.clienteVip()
-                ? subtotal.multiply(TASA_DESCUENTO_VIP).setScale(2, RoundingMode.HALF_UP)
-                : BigDecimal.ZERO.setScale(2);
-
-        BigDecimal total = subtotal.subtract(descuento);
-
-
+        pedido.calcularTotales(tasa);
 
         Pedido guardado = pedidoRepository.save(pedido);
+
         return toResponse(guardado);
     }
 
-    private PedidoResponse toResponse(Pedido pedido) {
+    private PedidoResponse toResponse(Pedido pedido){
         List<DetallePedidoResponse> detalles = pedido.getDetalles()
                 .stream()
                 .map(this::toDetalleResponse)
@@ -82,7 +81,7 @@ public class PedidoService {
         );
     }
 
-    private DetallePedidoResponse toDetalleResponse(DetallePedido detallePedido) {
+    private DetallePedidoResponse toDetalleResponse(DetallePedido detallePedido){
         return new DetallePedidoResponse(
                 detallePedido.getId(),
                 detallePedido.getProducto().getId(),
@@ -93,4 +92,3 @@ public class PedidoService {
         );
     }
 }
-

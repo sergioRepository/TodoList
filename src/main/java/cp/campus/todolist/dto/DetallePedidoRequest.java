@@ -12,15 +12,5 @@ public record DetallePedidoRequest(
         @Positive
         @Max(10000)
         Integer cantidad
-
-
-
-
-
-
-
-
 ) {
-
-
 }

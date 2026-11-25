@@ -9,7 +9,7 @@ import java.util.List;
 public record PedidoRequest(
         @NotBlank
         @Size(max = 150)
-        String Cliente,
+        String cliente,
 
         @NotNull
         @DecimalMin("0.00")
@@ -17,7 +17,6 @@ public record PedidoRequest(
         BigDecimal subtotal,
 
         boolean clienteVip,
-
 
         @NotEmpty
         @Size(max = 100)
