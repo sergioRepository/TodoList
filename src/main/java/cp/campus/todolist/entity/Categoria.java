@@ -9,19 +9,15 @@ import lombok.NoArgsConstructor;
 @Table(name = "categorias")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-
-
-public class Categorias {
-
+public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false, length = 100)
     private String nombre;
 
-    public Categorias(String nombre) {
+    public Categoria(String nombre) {
         this.nombre = nombre;
     }
 }

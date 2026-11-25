@@ -1,8 +1,9 @@
 package cp.campus.todolist.service;
 
+import cp.campus.todolist.dto.CategoriaResponse;
 import cp.campus.todolist.dto.ProductoRequest;
 import cp.campus.todolist.dto.ProductoResponse;
-import cp.campus.todolist.entity.Categorias;
+import cp.campus.todolist.entity.Categoria;
 import cp.campus.todolist.entity.Producto;
 import cp.campus.todolist.repository.CategoriaRepository;
 import cp.campus.todolist.repository.ProductoRepository;
@@ -18,48 +19,60 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
-@Validated
 @Service
+@Validated
 @Transactional(readOnly = true)
 public class ProductoService {
-
     private final ProductoRepository productoRepository;
     private final CategoriaRepository categoriaRepository;
 
-    public ProductoService(ProductoRepository productoRepository,
-                           CategoriaRepository categoriaRepository) {
+    public ProductoService(ProductoRepository productoRepository, CategoriaRepository categoriaRepository) {
         this.productoRepository = productoRepository;
         this.categoriaRepository = categoriaRepository;
     }
 
     @Transactional
     public ProductoResponse crear(@NotNull @Valid ProductoRequest request) {
-        Categorias categoria = categoriaRepository.findById(request.categoriaId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "No existe la categoria con el ID " + request.categoriaId()));
+        Categoria categoria = categoriaRepository
+                .findById(request.categoriaId())
+                .orElseThrow(() -> new IllegalArgumentException("No existe la categoria con el ID "
+                        + request.categoriaId()));
 
         BigDecimal precio = request.precio().setScale(2, RoundingMode.UNNECESSARY);
 
-        Producto producto = new Producto(request.nombre().strip(), precio, categoria);
+        Producto producto = new Producto(
+                request.nombre().strip(),
+                precio,
+                categoria
+        );
+
         Producto guardado = productoRepository.save(producto);
+
         return toResponse(guardado);
     }
 
     public List<ProductoResponse> listar() {
-        return productoRepository.findAll().stream().map(this::toResponse).toList();
+        return productoRepository
+                .findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     public Optional<ProductoResponse> buscarPorId(@NotNull @Positive Long id) {
         return productoRepository.findById(id).map(this::toResponse);
     }
 
-    public List<ProductoResponse> listarPorCategoria(@NotNull @Positive Long categoriaId) {
-        return productoRepository.findByCategoriaId(categoriaId).stream()
+    public List<ProductoResponse> listarPorCategoria(@NotNull @Positive Long categoriaId){
+        return productoRepository
+                .findByCategoria_Id(categoriaId)
+                .stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    private ProductoResponse toResponse(Producto producto) {
+    private ProductoResponse toResponse(Producto producto){
+
         return new ProductoResponse(
                 producto.getId(),
                 producto.getNombre(),

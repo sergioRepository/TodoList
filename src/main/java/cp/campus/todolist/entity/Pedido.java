@@ -1,10 +1,7 @@
 package cp.campus.todolist.entity;
 
-
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -12,39 +9,34 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-
 @Entity
 @Table(name = "pedidos")
-//@AllArgsConstructor // Todos los elementos del constructor
-@NoArgsConstructor // ningun elemento del constructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-
 public class Pedido {
-
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 150)
     private String cliente;
 
-    @Column(nullable = false, precision = 19,scale =2)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal subtotal;
 
-    @Column(nullable = false, precision = 19,scale =2)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal descuento;
 
-    @Column(nullable = false, precision = 19,scale =2)
+    @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal total;
 
-
-    @OneToMany(mappedBy = "pedido",cascade = CascadeType.ALL,orphanRemoval = true)
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<DetallePedido> detalles = new ArrayList<>();
 
     public Pedido(String cliente) {
         this.cliente = cliente;
         this.subtotal = new BigDecimal("0.00");
-        this.descuento =  new BigDecimal("0.00");
+        this.descuento = new BigDecimal("0.00");
         this.total = new BigDecimal("0.00");
     }
 
@@ -52,8 +44,9 @@ public class Pedido {
         return Collections.unmodifiableList(detalles);
     }
 
-    public void agregarDetalle(Producto producto,int cantidad){
-        DetallePedido detalle = new DetallePedido(this,producto,cantidad);
+    public void agregarDetalle(Producto producto, int cantidad){
+        DetallePedido detalle = new DetallePedido(this, producto, cantidad);
+
         detalles.add(detalle);
     }
 
@@ -62,15 +55,19 @@ public class Pedido {
             throw new IllegalStateException("El pedido debe tener al menos un detalle");
         }
 
-        if(tasaDescuento == null || tasaDescuento.signum()<0 || tasaDescuento.compareTo(BigDecimal.ONE)>0){
-
-            throw  new IllegalArgumentException("La tasa debe estar entre 0 y 1");
+        if(tasaDescuento == null ||
+                tasaDescuento.signum()<0 ||
+                tasaDescuento.compareTo(BigDecimal.ONE)>0){
+            throw new IllegalArgumentException("La tasa debe estar entre 0 y 1");
         }
 
-        subtotal= detalles.stream().map(DetallePedido::calcularImporte).reduce(new BigDecimal("0.00"),BigDecimal::add).setScale(2, RoundingMode.UNNECESSARY);
-     descuento = subtotal.multiply(tasaDescuento).setScale(2,RoundingMode.HALF_UP);
-    total= subtotal.subtract(descuento);
+        subtotal=detalles.stream()
+                .map(DetallePedido::calcularImporte)
+                .reduce(new BigDecimal("0.00"),BigDecimal::add)
+                .setScale(2, RoundingMode.UNNECESSARY);
+
+        descuento = subtotal.multiply(tasaDescuento).setScale(2,RoundingMode.HALF_UP);
+
+        total=subtotal.subtract(descuento);
     }
 }
-
-

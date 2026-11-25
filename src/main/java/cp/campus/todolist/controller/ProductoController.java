@@ -1,5 +1,6 @@
 package cp.campus.todolist.controller;
 
+import cp.campus.todolist.dto.CategoriaResponse;
 import cp.campus.todolist.dto.ProductoRequest;
 import cp.campus.todolist.dto.ProductoResponse;
 import cp.campus.todolist.service.ProductoService;
@@ -8,12 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -21,9 +17,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/productos")
-@Tag(name = "producto", description ="creacion y consulta de productos")
+@Tag(name = "Productos", description = "Creacion y consulta de productos")
 public class ProductoController {
-
     private final ProductoService productoService;
 
     public ProductoController(ProductoService productoService) {
@@ -31,21 +26,22 @@ public class ProductoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request) {
-        ProductoResponse response = productoService.crear(request);
+    @Operation(summary = "Crear Productos")
+    public ResponseEntity<ProductoResponse> crear(@Valid @RequestBody ProductoRequest request){
+        ProductoResponse resultado = productoService.crear(request);
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("/{id}")
-                .buildAndExpand(response.id())
-                .toUri();
+        URI ubicacion = ServletUriComponentsBuilder
+                .fromCurrentRequest() //URL de partida
+                .path("/{id}") //añade "/{id}" a la ruta
+                .buildAndExpand(resultado.id()) //Reemplaza "/{id}" por el id real
+                .toUri(); //Construye un objeto URI
 
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.created(ubicacion).body(resultado);
     }
 
     @GetMapping
     @Operation(summary = "Listar Productos")
-    public ResponseEntity<List<ProductoResponse>> listar() {
+    public ResponseEntity<List<ProductoResponse>> listar(){
         return ResponseEntity.ok(productoService.listar());
     }
 
@@ -58,8 +54,8 @@ public class ProductoController {
     }
 
     @GetMapping("/categoria/{categoriaId}")
-    @Operation(summary = "Buscar Productos por categoria")
-    public ResponseEntity<List<ProductoResponse>> listarPorCategoria(@PathVariable Long categoriaId) {
+    public ResponseEntity<List<ProductoResponse>> listarPorCategoria(@PathVariable("categoriaId") @Positive
+                                                                         Long categoriaId){
         return ResponseEntity.ok(productoService.listarPorCategoria(categoriaId));
     }
 }
