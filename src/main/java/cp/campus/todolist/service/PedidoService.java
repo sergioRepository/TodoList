@@ -11,6 +11,7 @@ import cp.campus.todolist.repository.PedidoRepository;
 import cp.campus.todolist.repository.ProductoRepository;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -18,6 +19,7 @@ import org.springframework.validation.annotation.Validated;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -79,6 +81,18 @@ public class PedidoService {
                 pedido.getTotal(),
                 detalles
         );
+    }
+
+    public List<PedidoResponse> listar() {
+        return pedidoRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public Optional<PedidoResponse> buscarPorId(@NotNull @Positive Long id) {
+        return pedidoRepository.findById(id)
+                .map(this::toResponse);
     }
 
     private DetallePedidoResponse toDetalleResponse(DetallePedido detallePedido){

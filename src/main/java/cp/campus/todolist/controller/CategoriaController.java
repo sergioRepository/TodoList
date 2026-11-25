@@ -4,9 +4,14 @@ import cp.campus.todolist.dto.CategoriaRequest;
 import cp.campus.todolist.dto.CategoriaResponse;
 import cp.campus.todolist.service.CategoriaService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -26,6 +31,37 @@ public class CategoriaController {
 
     @PostMapping
     @Operation(summary = "Crear Categorias")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Recurso creado",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CategoriaResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Datos invalidos",
+                    content = @Content(
+                            mediaType = "application/problem+json",
+                            schema = @Schema(implementation = ProblemDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Categoria encontrada",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CategoriaResponse.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Categoria no encontrada",
+                    content = @Content
+            )
+    })
     public ResponseEntity<CategoriaResponse> crear(@Valid @RequestBody CategoriaRequest request){
         CategoriaResponse resultado = categoriaService.crear(request);
 
